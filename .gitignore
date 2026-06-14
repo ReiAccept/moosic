@@ -1,1 +1,11 @@
+# Rust build output
 /target
+
+# SQLite database files (runtime artifacts)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment overrides
+.env

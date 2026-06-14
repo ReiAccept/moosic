@@ -1,8 +1,15 @@
+mod config;
+mod entities;
+
 use axum::{
     routing::{get, post},
     http::StatusCode,
     Json, Router,
 };
+use config::Config;
+use entities::prelude::*;
+use migration::{Migrator, MigratorTrait};
+use sea_orm::{ActiveValue, Database, DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
 #[tokio::main]
@@ -10,15 +17,36 @@ async fn main() {
     // initialize tracing
     tracing_subscriber::fmt::init();
 
-    // build our application with a route
-    let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        .route("/users", post(create_user));
+    // load configuration from JSON file
+    let config = Config::load();
+    tracing::info!("Loaded config: database.url={}", config.database.url);
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    // connect to SQLite database
+    let db: DatabaseConnection = Database::connect(&config.database.url)
+        .await
+        .expect("Failed to connect to database");
+
+    // run pending migrations
+    Migrator::up(&db, None)
+        .await
+        .expect("Failed to run migrations");
+
+    tracing::info!("Database connected and migrations applied");
+
+    // build our application with a shared database connection
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/users", post(create_user))
+        .with_state(db);
+
+    // bind to the configured address and port
+    let addr = format!("{}:{}", config.server.host, config.server.port);
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .unwrap_or_else(|e| panic!("Failed to bind to {addr}: {e}"));
+
+    tracing::info!("Listening on {addr}");
+
     let _ = axum::serve(listener, app).await;
 }
 
@@ -28,19 +56,30 @@ async fn root() -> &'static str {
 }
 
 async fn create_user(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
+    axum::extract::State(db): axum::extract::State<DatabaseConnection>,
     Json(payload): Json<CreateUser>,
-) -> (StatusCode, Json<User>) {
-    // insert your application logic here
-    let user = User {
-        id: 1337,
-        username: payload.username,
+) -> Result<(StatusCode, Json<User>), (StatusCode, String)> {
+    let username = payload.username;
+
+    let user = UserActiveModel {
+        username: ActiveValue::Set(username.clone()),
+        ..Default::default()
     };
 
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(user))
+    let res = UserEntity::insert(user).exec(&db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to insert user: {e}"),
+        )
+    })?;
+
+    Ok((
+        StatusCode::CREATED,
+        Json(User {
+            id: res.last_insert_id,
+            username,
+        }),
+    ))
 }
 
 // the input to our `create_user` handler
@@ -52,6 +91,6 @@ struct CreateUser {
 // the output to our `create_user` handler
 #[derive(Serialize)]
 struct User {
-    id: u64,
+    id: i32,
     username: String,
 }
