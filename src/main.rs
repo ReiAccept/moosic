@@ -1,3 +1,4 @@
+mod cache;
 mod config;
 mod db;
 mod entities;
@@ -6,6 +7,7 @@ mod redis;
 mod router;
 mod state;
 
+use cache::{CacheBackend, MemoryCache, RedisCache};
 use config::Config;
 use state::AppState;
 
@@ -20,12 +22,29 @@ async fn main() {
     // connect to database and run pending migrations
     let db = db::connect(&config.database).await;
 
-    // connect to Redis
-    let redis = redis::connect(&config.redis).await;
-    tracing::info!("Redis connected: url={}", config.redis.url);
+    // select cache backend based on configuration
+    let cache = if config.redis.enabled {
+        let redis_conn = redis::connect(&config.redis).await;
+        tracing::info!("Redis connected (cache): url={}", config.redis.url);
+        CacheBackend::Redis(RedisCache::new(redis_conn))
+    } else {
+        tracing::info!("Using in-memory cache (DashMap)");
+        CacheBackend::Memory(MemoryCache::new())
+    };
+
+    // determine database backend name for status reporting
+    let db_backend = match &config.database {
+        config::Database::Sqlite { .. } => "sqlite",
+    };
 
     // build our application with shared state
-    let state = AppState { db, redis };
+    let state = AppState {
+        db,
+        cache,
+        db_backend,
+        server_host: config.server.host.clone(),
+        server_port: config.server.port,
+    };
     let app = router::create_router(state);
 
     // bind to the configured address and port

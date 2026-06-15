@@ -5,6 +5,9 @@ use std::path::Path;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub database: Database,
+    /// Cache / Redis configuration. When absent or `enabled = false`,
+    /// an in-memory DashMap cache is used instead of Redis.
+    #[serde(default)]
     pub redis: Redis,
     pub server: Server,
 }
@@ -26,11 +29,20 @@ pub struct Server {
     pub port: u16,
 }
 
-/// Redis connection configuration.
-#[derive(Debug, Deserialize)]
+/// Cache / Redis configuration.
+#[derive(Debug, Default, Deserialize)]
 pub struct Redis {
+    /// When true, connect to Redis and use it as the cache backend.
+    /// When false (the default), use an in-memory DashMap cache.
+    #[serde(default)]
+    pub enabled: bool,
     /// Redis connection URL, e.g. "redis://127.0.0.1:6379"
+    #[serde(default = "default_redis_url")]
     pub url: String,
+}
+
+fn default_redis_url() -> String {
+    "redis://127.0.0.1:6379".to_owned()
 }
 
 impl Config {
