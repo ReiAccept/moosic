@@ -1,11 +1,10 @@
 mod config;
+mod db;
 mod entities;
 mod handlers;
 mod router;
 
 use config::Config;
-use migration::{Migrator, MigratorTrait};
-use sea_orm::Database;
 
 #[tokio::main]
 async fn main() {
@@ -14,19 +13,9 @@ async fn main() {
 
     // load configuration from JSON file
     let config = Config::load();
-    tracing::info!("Loaded config: database.url={}", config.database.url);
 
-    // connect to SQLite database
-    let db = Database::connect(&config.database.url)
-        .await
-        .expect("Failed to connect to database");
-
-    // run pending migrations
-    Migrator::up(&db, None)
-        .await
-        .expect("Failed to run migrations");
-
-    tracing::info!("Database connected and migrations applied");
+    // connect to database and run pending migrations
+    let db = db::connect(&config.database).await;
 
     // build our application with a shared database connection
     let app = router::create_router(db);

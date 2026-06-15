@@ -1,5 +1,6 @@
 {
     "database": {
+        "type": "sqlite",
         "url": "sqlite://moosic.db?mode=rwc"
     },
     "server": {

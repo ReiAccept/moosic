@@ -8,10 +8,13 @@ pub struct Config {
     pub server: Server,
 }
 
+/// Database backend selection with backend-specific options.
 #[derive(Debug, Deserialize)]
-pub struct Database {
-    /// SQLite database URL, e.g. "sqlite://moosic.db?mode=rwc"
-    pub url: String,
+#[serde(tag = "type")]
+pub enum Database {
+    /// SQLite backend with a file or in-memory URL.
+    #[serde(rename = "sqlite")]
+    Sqlite { url: String },
 }
 
 #[derive(Debug, Deserialize)]
