@@ -2,9 +2,12 @@ mod config;
 mod db;
 mod entities;
 mod handlers;
+mod redis;
 mod router;
+mod state;
 
 use config::Config;
+use state::AppState;
 
 #[tokio::main]
 async fn main() {
@@ -17,8 +20,13 @@ async fn main() {
     // connect to database and run pending migrations
     let db = db::connect(&config.database).await;
 
-    // build our application with a shared database connection
-    let app = router::create_router(db);
+    // connect to Redis
+    let redis = redis::connect(&config.redis).await;
+    tracing::info!("Redis connected: url={}", config.redis.url);
+
+    // build our application with shared state
+    let state = AppState { db, redis };
+    let app = router::create_router(state);
 
     // bind to the configured address and port
     let addr = format!("{}:{}", config.server.host, config.server.port);

@@ -1,11 +1,12 @@
 use axum::{http::StatusCode, Json};
-use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
+use sea_orm::{ActiveValue, EntityTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::entities::prelude::*;
+use crate::state::AppState;
 
 pub async fn create_user(
-    axum::extract::State(db): axum::extract::State<DatabaseConnection>,
+    axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<CreateUser>,
 ) -> Result<(StatusCode, Json<User>), (StatusCode, String)> {
     let username = payload.username;
@@ -15,7 +16,7 @@ pub async fn create_user(
         ..Default::default()
     };
 
-    let res = UserEntity::insert(user).exec(&db).await.map_err(|e| {
+    let res = UserEntity::insert(user).exec(&state.db).await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("Failed to insert user: {e}"),

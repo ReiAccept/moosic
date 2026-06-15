@@ -10,6 +10,7 @@ edition = "2024"
 [dependencies]
 axum = "0.8.9"
 migration = { path = "migration" }
+redis = { version = "0.31", features = ["tokio-comp"] }
 sea-orm = { version = "1", features = ["sqlx-sqlite", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

@@ -5,6 +5,7 @@ use std::path::Path;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub database: Database,
+    pub redis: Redis,
     pub server: Server,
 }
 
@@ -23,6 +24,13 @@ pub struct Server {
     pub host: String,
     /// Listen port, e.g. 3000
     pub port: u16,
+}
+
+/// Redis connection configuration.
+#[derive(Debug, Deserialize)]
+pub struct Redis {
+    /// Redis connection URL, e.g. "redis://127.0.0.1:6379"
+    pub url: String,
 }
 
 impl Config {
