@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use axum::{http::StatusCode, Json};
+use axum::{extract::Query, http::StatusCode, Json};
 use sea_orm::{ConnectionTrait, Statement};
 use serde::{Deserialize, Serialize};
 use memory_stats::memory_stats;
@@ -14,12 +14,14 @@ const STATUS_CACHE_TTL: Duration = Duration::from_secs(10);
 
 /// `GET /api/admin/server/status` — server overview.
 ///
-/// Results are cached for 10 seconds.
+/// Results are cached for 10 seconds. Pass `?refresh=true` to bypass the cache.
 pub async fn server_status(
     axum::extract::State(state): axum::extract::State<AppState>,
+    Query(params): Query<StatusQuery>,
 ) -> Result<Json<ServerStatus>, (StatusCode, String)> {
-    // Serve from cache when available
-    if state.cache.exists(STATUS_CACHE_KEY).await {
+    if params.refresh {
+        state.cache.del(STATUS_CACHE_KEY).await;
+    } else if state.cache.exists(STATUS_CACHE_KEY).await {
         if let Some(cached) = state.cache.get(STATUS_CACHE_KEY).await {
             if let Ok(status) = serde_json::from_str::<ServerStatus>(&cached) {
                 return Ok(Json(status));
@@ -70,6 +72,12 @@ pub async fn server_status(
     }
 
     Ok(Json(status))
+}
+
+#[derive(Deserialize)]
+pub(crate) struct StatusQuery {
+    #[serde(default)]
+    refresh: bool,
 }
 
 #[derive(Serialize, Deserialize)]
