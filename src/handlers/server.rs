@@ -32,7 +32,7 @@ pub async fn server_status(
     // Lightweight connectivity check
     let db_connected = state
         .db
-        .execute(Statement::from_string(
+        .execute_raw(Statement::from_string(
             state.db.get_database_backend(),
             "SELECT 1",
         ))
