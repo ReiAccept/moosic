@@ -3,7 +3,6 @@ mod config;
 mod db;
 mod entities;
 mod handlers;
-mod redis;
 mod router;
 mod state;
 
@@ -24,9 +23,9 @@ async fn main() {
 
     // select cache backend based on configuration
     let cache = if config.redis.enabled {
-        let redis_conn = redis::connect(&config.redis).await;
+        let redis_cache = RedisCache::connect(&config.redis).await;
         tracing::info!("Redis connected (cache): url={}", config.redis.url);
-        CacheBackend::Redis(RedisCache::new(redis_conn))
+        CacheBackend::Redis(redis_cache)
     } else {
         tracing::info!("Using in-memory cache (DashMap)");
         CacheBackend::Memory(MemoryCache::new())

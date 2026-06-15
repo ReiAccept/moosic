@@ -1,5 +1,7 @@
 ## 服务器管理接口
 
+以下接口需要具有 `read_server` 权限
+
 ### 获取服务器状态
 
 GET /api/admin/server/status

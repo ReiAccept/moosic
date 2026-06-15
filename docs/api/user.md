@@ -11,3 +11,7 @@ GET /api/user/logout
 ### 修改密码
 
 POST /api/user/password/edit
+
+### 用户获取自己信息 
+
+GET /api/user/info

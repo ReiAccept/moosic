@@ -12,8 +12,17 @@ pub struct RedisCache {
 }
 
 impl RedisCache {
-    /// Wrap an existing Redis multiplexed connection.
-    pub fn new(conn: MultiplexedConnection) -> Self {
+    /// Connect to Redis using the provided configuration and return a
+    /// new `RedisCache` wrapping the established connection.
+    ///
+    /// Panics if the URL is invalid or the connection cannot be established.
+    pub async fn connect(config: &crate::config::Redis) -> Self {
+        let client =
+            redis::Client::open(config.url.as_str()).expect("Failed to parse Redis URL");
+        let conn = client
+            .get_multiplexed_async_connection()
+            .await
+            .expect("Failed to connect to Redis");
         Self { conn }
     }
 
