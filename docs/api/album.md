@@ -33,9 +33,9 @@ Authorization: Bearer <token>
     "artist_id": 1,
     "artist_name": "Radiohead",
     "year": 1997,
-    "genre": "Alternative Rock",
     "song_count": 12,
     "duration_secs": 3204,
+    "play_count": 156,
     "cover_url": "/api/album/cover?id=10",
     "starred": null,
     "songs": [
@@ -64,9 +64,9 @@ Authorization: Bearer <token>
 | `artist_id` | i32 | 艺术家 ID |
 | `artist_name` | string | 艺术家名称 |
 | `year` | i32\|null | 发行年份 |
-| `genre` | string\|null | 流派 |
 | `song_count` | i32 | 歌曲数 |
 | `duration_secs` | i32 | 总时长（秒） |
+| `play_count` | i32 | 总播放次数（所有用户累计） |
 | `cover_url` | string | 封面图片 URL |
 | `starred` | i64\|null | 收藏时间 |
 | `songs` | array | 歌曲列表（按 disc_number, track_number 排序） |
@@ -84,6 +84,8 @@ Authorization: Bearer <token>
 | `songs[].starred` | i64\|null | 收藏时间 |
 
 ---
+
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
 
 
 ### 专辑列表视图
@@ -110,8 +112,8 @@ Authorization: Bearer <token>
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `type` | string | 是 | 列表类型：`newest`、`recent`、`frequent`、`random`、`alphabeticalByName`、`alphabeticalByArtist`、`starred`、`byYear`（从 `year_from` 到 `year_to`）、`byGenre` |
-| `genre_id` | i32 | 否 | 按流派过滤（仅 `byGenre` 类型需要） |
+| `type` | string | 是 | 列表类型：`newest`、`recent`、`frequent`、`random`、`alphabeticalByName`、`alphabeticalByArtist`、`starred`、`byYear`（从 `year_from` 到 `year_to`）|
+| `artist_id` | i32 | 否 | 按艺术家筛选 |
 | `year_from` | i32 | 否 | 起始年份（仅 `byYear` 类型需要） |
 | `year_to` | i32 | 否 | 结束年份（仅 `byYear` 类型需要） |
 | `offset` | i32 | 否 | 分页偏移，默认 `0` |
@@ -125,6 +127,7 @@ Authorization: Bearer <token>
         {
             "id": 10,
             "name": "OK Computer",
+            "artist_id": 1,
             "artist_name": "Radiohead",
             "year": 1997,
             "song_count": 12,

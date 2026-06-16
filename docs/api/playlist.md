@@ -4,6 +4,8 @@
 
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 获取歌单列表
 
 `POST /api/playlist/list`
@@ -84,6 +86,7 @@ Authorization: Bearer <token>
     "song_count": 42,
     "duration_secs": 9100,
     "created_at": 1781611200000,
+    "updated_at": 1781683200000,
     "songs": [
         {
             "position": 1,
@@ -134,7 +137,7 @@ Authorization: Bearer <token>
 | `name` | string | 是 | 歌单名称 |
 | `comment` | string | 否 | 备注 |
 | `is_public` | bool | 否 | 是否公开，默认 `false` |
-| `song_ids` | array | 否 | 初始歌曲 ID 列表 |
+| `song_ids` | array | 否 | 初始歌曲 ID 列表。歌曲将按照数组中的顺序添加到歌单中（song_ids[0] 为 position 1，依此类推） |
 
 **响应** `201 Created`
 
@@ -283,7 +286,7 @@ Authorization: Bearer <token>
 
 `POST /api/playlist/music/remove`
 
-从歌单移除指定序号的歌曲。仅所有者可操作。
+从歌单移除指定歌曲。仅所有者可操作。
 
 **请求头**
 
@@ -296,21 +299,63 @@ Authorization: Bearer <token>
 ```json
 {
     "id": 1,
-    "positions": [1, 3]
+    "song_ids": [100, 501]
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `id` | i32 | 是 | 歌单 ID |
-| `positions` | array | 是 | 要移除的歌曲位置（序号，从 1 开始） |
+| `song_ids` | array | 是 | 要移除的歌曲 ID 列表 |
 
-> 移除后剩余歌曲的 position 会自动重新编号。
+> 也可使用 `positions`（序号数组，从 1 开始）作为替代参数，但建议使用 `song_ids` 以避免竞态风险。若两者都提供，以 `song_ids` 为准。
 
 **响应** `200 OK`
 
 返回更新后的歌单详情（格式同 `info`）。
 
+---
+
+### 调整歌曲顺序
+
+`POST /api/playlist/music/reorder`
+
+重新排列歌单中的歌曲顺序。仅所有者可操作。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "id": 1,
+    "song_ids": [350, 100, 501, 420, 230]
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | i32 | 是 | 歌单 ID |
+| `song_ids` | array | 是 | 歌曲 ID 的完整新顺序。未包含在此数组中的歌曲将被移除 |
+
+**响应** `200 OK`
+
+返回更新后的歌单详情（格式同 `info`）。
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 排序成功 |
+| `400` | song_ids 为空或包含不存在的歌曲 ID |
+| `403` | 不是所有者 |
+| `404` | 歌单不存在 |
+
+---
 
 ### 获取歌单封面图片
 

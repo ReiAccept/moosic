@@ -4,6 +4,8 @@
 
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 获取音乐库列表
 
 `POST /api/library/list`
@@ -53,7 +55,7 @@ Authorization: Bearer <token>
 | `libraries[].id` | i32 | 音乐库 ID |
 | `libraries[].name` | string | 显示名称 |
 | `libraries[].path` | string | 文件系统路径 |
-| `libraries[].is_enabled` | bool | 当前用户是否启用此库 |
+| `libraries[].is_enabled` | bool | 当前用户是否启用此库（此为每位用户的个人设置，不同于管理员接口中的全局 `is_enabled`） |
 | `libraries[].song_count` | i32 | 歌曲数量 |
 | `libraries[].created_at` | i64 | 创建时间 |
 
@@ -91,6 +93,13 @@ Authorization: Bearer <token>
 }
 ```
 
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 启用成功 |
+| `404` | 音乐库不存在 |
+
 ---
 
 ### 禁用音乐库
@@ -124,6 +133,13 @@ Authorization: Bearer <token>
     "message": "Library disabled"
 }
 ```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 禁用成功 |
+| `404` | 音乐库不存在 |
 
 ---
 

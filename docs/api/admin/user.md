@@ -4,6 +4,8 @@
 
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 添加用户
 
 `POST /api/admin/user/add`
@@ -34,7 +36,7 @@ Authorization: Bearer <token>
 | `username` | string | 是 | 用户名，必须唯一 |
 | `password` | string | 是 | 初始密码 |
 | `email` | string | 否 | 邮箱 |
-| `privs` | bool | Object | 权限 |
+| `privs` | Object | 否 | 权限，默认 `{}` |
 | `scrobbling_enabled` | bool | 否 | 启用播放记录，默认 `true` |
 | `max_bit_rate` | i32 | 否 | 最大码率限制（kbps），0 = 无限制，默认 `0` |
 
@@ -279,14 +281,14 @@ Authorization: Bearer <token>
 ```json
 {
     "id": 2,
-    "privs": {},
+    "privs": {}
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `id` | i32 | 是 | 目标用户 ID |
-| `privs` | Obejct | 是 | 权限 |
+| `privs` | Object | 是 | 权限 |
 
 **响应** `200 OK`
 
@@ -304,5 +306,137 @@ Authorization: Bearer <token>
 | 状态码 | 含义 |
 |--------|------|
 | `200` | 修改成功 |
+| `403` | 无 `edit_user` 权限 |
+| `404` | 用户不存在 |
+
+---
+
+### 编辑用户信息
+
+`POST /api/admin/user/edit`
+
+修改用户的基本设置（邮箱、播放记录开关、最大码率限制）。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "id": 2,
+    "email": "new@example.com",
+    "scrobbling_enabled": false,
+    "max_bit_rate": 320
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | i32 | 是 | 目标用户 ID |
+| `email` | string\|null | 否 | 新邮箱地址 |
+| `scrobbling_enabled` | bool | 否 | 是否启用播放记录 |
+| `max_bit_rate` | i32 | 否 | 最大码率限制（kbps），0 = 无限制 |
+
+> 未提供的字段保持不变。
+
+**响应** `200 OK`
+
+返回更新后的用户对象（格式同 `info`）。
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 修改成功 |
+| `400` | 请求体格式错误 |
+| `403` | 无 `edit_user` 权限 |
+| `404` | 用户不存在 |
+
+---
+
+### 启用用户
+
+`POST /api/admin/user/enable`
+
+启用被禁用的用户。用户被禁用后无法登录，但数据保留。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "id": 2
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | i32 | 是 | 目标用户 ID |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "User enabled"
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 启用成功 |
+| `403` | 无 `edit_user` 权限 |
+| `404` | 用户不存在 |
+
+---
+
+### 禁用用户
+
+`POST /api/admin/user/disable`
+
+禁用用户登录。不能禁用自己。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "id": 2
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | i32 | 是 | 目标用户 ID |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "User disabled"
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 禁用成功 |
+| `400` | 不能禁用自己 |
 | `403` | 无 `edit_user` 权限 |
 | `404` | 用户不存在 |

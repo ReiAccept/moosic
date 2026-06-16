@@ -4,6 +4,8 @@
 
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 用户登录
 
 `POST /api/user/login`
@@ -179,3 +181,275 @@ Authorization: Bearer <token>
 |--------|------|
 | `200` | 成功 |
 | `401` | 未提供有效令牌 |
+
+---
+
+### 编辑个人信息
+
+`POST /api/user/edit`
+
+当前用户修改自己的个人设置（邮箱、播放记录、码率限制）。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "email": "new@example.com",
+    "scrobbling_enabled": false,
+    "max_bit_rate": 320
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `email` | string\|null | 否 | 新邮箱地址 |
+| `scrobbling_enabled` | bool | 否 | 是否启用播放记录 |
+| `max_bit_rate` | i32 | 否 | 最大码率限制（kbps），0 = 无限制 |
+
+> 未提供的字段保持不变。
+
+**响应** `200 OK`
+
+返回更新后的用户对象（格式同 `info`）。
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 修改成功 |
+| `400` | 请求体格式错误 |
+| `401` | 未提供有效令牌 |
+
+---
+
+### 刷新令牌
+
+`POST /api/user/token/refresh`
+
+使用当前有效令牌换取新令牌，延长会话有效期。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{}
+```
+
+**响应** `200 OK`
+
+```json
+{
+    "token": "new_token_string..."
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 刷新成功 |
+| `401` | 当前令牌无效或已过期 |
+
+---
+
+### 管理活跃会话
+
+`POST /api/user/sessions`
+
+查看当前用户的所有活跃会话。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{}
+```
+
+**响应** `200 OK`
+
+```json
+{
+    "sessions": [
+        {
+            "id": "sess_abc123",
+            "created_at": 1781700000000,
+            "last_used_at": 1781700500000,
+            "device_info": "Chrome on Linux"
+        }
+    ]
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `sessions[].id` | string | 会话 ID |
+| `sessions[].created_at` | i64 | 会话创建时间 |
+| `sessions[].last_used_at` | i64 | 最近使用时间 |
+| `sessions[].device_info` | string\|null | 设备/客户端信息 |
+
+---
+
+### 撤销会话
+
+`POST /api/user/session/revoke`
+
+撤销指定的活跃会话（在其他设备上登出）。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "session_id": "sess_abc123"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `session_id` | string | 是 | 要撤销的会话 ID |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "Session revoked"
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 撤销成功 |
+| `400` | 不能撤销当前会话 |
+| `404` | 会话不存在 |
+
+---
+
+### 注销账号
+
+`POST /api/user/delete`
+
+用户自行注销账号。需要密码确认。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "password": "current_password"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `password` | string | 是 | 当前密码 |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "Account deleted"
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 注销成功 |
+| `401` | 密码错误 |
+| `400` | 存在关联数据无法删除（如拥有的歌单） |
+
+---
+
+### 请求密码重置
+
+`POST /api/user/password/reset/request`
+
+向注册邮箱发送密码重置验证码。
+
+**请求体** `application/json`
+
+```json
+{
+    "email": "alice@example.com"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `email` | string | 是 | 注册邮箱地址 |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "If the email is registered, a reset code has been sent"
+}
+```
+
+> 无论邮箱是否已注册，始终返回 200，防止邮箱枚举攻击。
+
+---
+
+### 确认密码重置
+
+`POST /api/user/password/reset/confirm`
+
+使用验证码完成密码重置。
+
+**请求体** `application/json`
+
+```json
+{
+    "code": "123456",
+    "new_password": "newpass456"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `code` | string | 是 | 邮箱收到的验证码 |
+| `new_password` | string | 是 | 新密码（最小长度 8） |
+
+**响应** `200 OK`
+
+```json
+{
+    "message": "Password reset successful"
+}
+```
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 重置成功 |
+| `400` | 验证码无效/已过期，或密码不符合要求 |

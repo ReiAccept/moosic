@@ -33,6 +33,7 @@ Authorization: Bearer <token>
     "sort_name": "Radiohead",
     "album_count": 9,
     "song_count": 112,
+    "play_count": 520,
     "starred": 1781640000000,
     "albums": [
         {
@@ -53,6 +54,7 @@ Authorization: Bearer <token>
 | `name` | string | 艺术家名称 |
 | `album_count` | i32 | 专辑总数 |
 | `song_count` | i32 | 歌曲总数 |
+| `play_count` | i32 | 总播放次数（所有用户累计） |
 | `starred` | i64\|null | 收藏时间 |
 | `albums` | array | 专辑列表（按年份逆序） |
 | `albums[].id` | i32 | 专辑 ID |
@@ -64,11 +66,13 @@ Authorization: Bearer <token>
 
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 获取艺术家列表
 
 `POST /api/artist/list`
 
-按字母索引返回艺术家列表。
+按字母序返回艺术家列表。可通过 `letter` 参数过滤首字母。
 
 **请求头**
 
@@ -80,6 +84,7 @@ Authorization: Bearer <token>
 
 ```json
 {
+    "letter": "R",
     "offset": 0,
     "limit": 20
 }
@@ -87,6 +92,7 @@ Authorization: Bearer <token>
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
+| `letter` | string | 否 | 按首字母过滤（大小写不敏感）。不传则返回全部 |
 | `offset` | i32 | 否 | 分页偏移，默认 `0` |
 | `limit` | i32 | 否 | 每页数量，默认 `20`，最大 `500` |
 
@@ -101,7 +107,7 @@ Authorization: Bearer <token>
             "sort_name": "Radiohead",
             "album_count": 9,
             "song_count": 112,
-            "image_url": "/api/artist/cover?id=1",
+            "cover_url": "/api/artist/cover?id=1",
             "starred": 1781640000000
         }
     ],
@@ -116,7 +122,7 @@ Authorization: Bearer <token>
 | `artists[].name` | string | 艺术家名称 |
 | `artists[].album_count` | i32 | 专辑数量 |
 | `artists[].song_count` | i32 | 歌曲数量 |
-| `artists[].image_url` | string | 艺术家图片 URL |
+| `artists[].cover_url` | string | 艺术家图片 URL |
 | `artists[].starred` | i64\|null | 收藏时间，未收藏为 `null` |
 | `total` | i32 | 艺术家总数 |
 
@@ -156,3 +162,73 @@ Authorization: Bearer <token>
 |--------|------|
 | `200` | 成功 |
 | `404` | 指定 ID 的资源不存在 |
+
+---
+
+### 获取艺术家歌曲
+
+`POST /api/artist/songs`
+
+按艺术家查询其所有歌曲，支持分页。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "id": 1,
+    "offset": 0,
+    "limit": 50
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | i32 | 是 | 艺术家 ID |
+| `offset` | i32 | 否 | 分页偏移，默认 `0` |
+| `limit` | i32 | 否 | 每页数量，默认 `50`，最大 `500` |
+
+**响应** `200 OK`
+
+```json
+{
+    "songs": [
+        {
+            "id": 100,
+            "title": "Airbag",
+            "album_id": 10,
+            "album_name": "OK Computer",
+            "track_number": 1,
+            "disc_number": 1,
+            "duration_secs": 283,
+            "starred": null
+        }
+    ],
+    "total": 112
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `songs[].id` | i32 | 歌曲 ID |
+| `songs[].title` | string | 歌曲标题 |
+| `songs[].album_id` | i32\|null | 专辑 ID |
+| `songs[].album_name` | string\|null | 专辑名称 |
+| `songs[].track_number` | i32\|null | 音轨号 |
+| `songs[].disc_number` | i32\|null | 碟号 |
+| `songs[].duration_secs` | i32 | 时长（秒） |
+| `songs[].starred` | i64\|null | 收藏时间 |
+| `total` | i32 | 歌曲总数 |
+
+**可能的错误**
+
+| 状态码 | 含义 |
+|--------|------|
+| `200` | 成功 |
+| `401` | 未提供有效令牌 |
+| `404` | 艺术家不存在 |

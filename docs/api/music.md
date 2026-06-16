@@ -3,6 +3,8 @@
 音乐媒体相关接口，包含歌曲信息、流媒体播放、下载、封面和歌词。
 ---
 
+> 所有错误响应遵循统一格式，详见 [错误格式](./error.md)
+
 ### 获取歌曲信息
 
 `POST /api/music/info`
@@ -37,7 +39,6 @@ Authorization: Bearer <token>
     "artist_name": "Radiohead",
     "album_id": 10,
     "album_name": "OK Computer",
-    "genre": "Alternative Rock",
     "track_number": 1,
     "disc_number": 1,
     "duration_secs": 283,
@@ -46,8 +47,9 @@ Authorization: Bearer <token>
     "file_format": "mp3",
     "content_type": "audio/mpeg",
     "year": 1997,
+    "play_count": 42,
     "created_at": 1781524800000,
-    "starred": 1781645000000,
+    "starred": 1781645000000
 }
 ```
 
@@ -59,7 +61,6 @@ Authorization: Bearer <token>
 | `artist_name` | string | 艺术家名称 |
 | `album_id` | i32\|null | 专辑 ID |
 | `album_name` | string\|null | 专辑名称 |
-| `genre` | string\|null | 流派 |
 | `track_number` | i32\|null | 音轨号 |
 | `disc_number` | i32\|null | 碟号 |
 | `duration_secs` | i32 | 时长（秒） |
@@ -68,6 +69,7 @@ Authorization: Bearer <token>
 | `file_format` | string\|null | 文件格式（如 `mp3`、`flac`） |
 | `content_type` | string\|null | MIME 类型（如 `audio/mpeg`） |
 | `year` | i32\|null | 年份 |
+| `play_count` | i32 | 总播放次数（所有用户累计） |
 | `created_at` | i64 | 添加时间 |
 | `starred` | i64\|null | 收藏时间，未收藏为 `null` |
 
@@ -91,7 +93,7 @@ Authorization: Bearer <token>
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `id` | i32 | 是 | 歌曲 ID |
-| `max_bit_rate` | i32 | 否 | 最大码率限制（kbps）。若歌曲原始码率超过此值，服务端应进行转码或选择较低码率版本。`0`（默认）表示不限制 |
+| `max_bit_rate` | i32 | 否 | 最大码率限制（kbps）。若歌曲原始码率超过此值，服务端应进行转码或选择较低码率版本。`0`（默认）表示不限制。优先级：请求参数 > 用户设置中的 `max_bit_rate` > 无限制 |
 
 **请求头**
 
@@ -184,7 +186,7 @@ Authorization: Bearer <token>
 | `Content-Type` | 图片 MIME 类型（`image/jpeg`、`image/png` 等） |
 | `Cache-Control` | `public, max-age=604800`（7 天缓存） |
 
-> 若歌曲/专辑/艺术家没有封面，返回默认占位图（`image/svg+xml`）。
+> 封面查找优先级：歌曲内嵌封面 → 所属专辑封面 → 艺术家封面 → 默认占位图（`image/svg+xml`）。
 
 **可能的错误**
 
@@ -266,7 +268,6 @@ Authorization: Bearer <token>
 ```json
 {
     "size": 20,
-    "genre_id": null,
     "year_from": null,
     "year_to": null
 }
@@ -275,7 +276,6 @@ Authorization: Bearer <token>
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `size` | i32 | 否 | 数量，默认 `20`，最大 `500` |
-| `genre_id` | i32\|null | 否 | 限定流派 |
 | `year_from` | i32\|null | 否 | 起始年份 |
 | `year_to` | i32\|null | 否 | 结束年份 |
 
@@ -303,7 +303,7 @@ Authorization: Bearer <token>
 
 `POST /api/music/playing`
 
-获取当前正在播放的歌曲（由于可能存在不同设备，所以应该返回列表）。
+获取当前用户在所有设备上的正在播放歌曲。普通用户只能看到自己的播放状态。
 
 **请求头**
 
@@ -320,7 +320,7 @@ Authorization: Bearer <token>
             "song_id": 100,
             "title": "Airbag",
             "artist_name": "Radiohead",
-            "username": "alice",
+            "device_id": "phone",
             "minutes_ago": 2
         }
     ]
@@ -332,7 +332,69 @@ Authorization: Bearer <token>
 | `entries[].song_id` | i32 | 歌曲 ID |
 | `entries[].title` | string | 歌曲标题 |
 | `entries[].artist_name` | string | 艺术家 |
-| `entries[].username` | string | 播放用户 |
+| `entries[].device_id` | string\|null | 设备标识 |
 | `entries[].minutes_ago` | i32 | N 分钟前开始播放 |
+
+> 如需查看所有用户的播放状态（管理员功能），请使用管理接口。
+
+---
+
+### 歌曲列表
+
+`POST /api/music/list`
+
+按类型获取歌曲列表（最新添加、最近播放、随机等）。
+
+**请求头**
+
+```
+Authorization: Bearer <token>
+```
+
+**请求体** `application/json`
+
+```json
+{
+    "type": "newest",
+    "artist_id": null,
+    "year_from": null,
+    "year_to": null,
+    "offset": 0,
+    "limit": 50
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 列表类型：`newest`、`recent`、`frequent`、`random`、`starred`、`byYear` |
+| `artist_id` | i32 | 否 | 按艺术家筛选 |
+| `year_from` | i32 | 否 | 起始年份（仅 `byYear` 类型需要） |
+| `year_to` | i32 | 否 | 结束年份（仅 `byYear` 类型需要） |
+| `offset` | i32 | 否 | 分页偏移，默认 `0` |
+| `limit` | i32 | 否 | 每页数量，默认 `50`，最大 `500` |
+
+**响应** `200 OK`
+
+```json
+{
+    "songs": [
+        {
+            "id": 501,
+            "title": "Paranoid Android",
+            "artist_name": "Radiohead",
+            "album_name": "OK Computer",
+            "track_number": 2,
+            "duration_secs": 383,
+            "starred": null
+        }
+    ],
+    "total": 1523
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `songs` | array | 歌曲对象数组 |
+| `total` | i32 | 符合条件的歌曲总数 |
 
 ---
