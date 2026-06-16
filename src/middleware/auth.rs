@@ -1,5 +1,4 @@
 use std::ops::Deref;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::body::Body;
 use axum::extract::FromRequestParts;
@@ -17,6 +16,7 @@ use crate::entities::prelude::*;
 use crate::entities::sessions;
 use crate::error::AppError;
 use crate::state::AppState;
+use crate::utils::now_ms;
 
 /// Authenticated user information extracted from a valid session token.
 #[derive(Clone, Debug)]
@@ -59,13 +59,6 @@ where
     }
 }
 
-/// 13-digit Unix millisecond timestamp.
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
 
 /// Returns `true` when the request path does not require authentication.
 fn is_public_path(path: &str) -> bool {

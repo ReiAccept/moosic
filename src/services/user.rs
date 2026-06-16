@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use sea_orm::{
     ActiveModelTrait, ActiveValue::*, ColumnTrait, DatabaseConnection, EntityTrait,
     IntoActiveModel, QueryFilter,
@@ -7,18 +5,7 @@ use sea_orm::{
 
 use crate::entities::users;
 use crate::error::AppError;
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/// 13-digit Unix millisecond timestamp.
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Queries

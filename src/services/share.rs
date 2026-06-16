@@ -1,8 +1,8 @@
 use rand::RngExt as _;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
-use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::utils::now_ms;
 use crate::entities::prelude::*;
 use crate::entities::shares;
 use crate::error::AppError;
@@ -33,17 +33,6 @@ pub struct ShareItem {
     pub last_visited_at: Option<i64>,
     pub expires_at: Option<i64>,
     pub created_at: i64,
-}
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
 }
 
 /// Generate a random 32-character alphanumeric token.

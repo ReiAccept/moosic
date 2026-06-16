@@ -10,13 +10,6 @@ use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::state::AppState;
 
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
-
 // ---------------------------------------------------------------------------
 // Request types
 // ---------------------------------------------------------------------------

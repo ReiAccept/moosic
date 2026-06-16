@@ -1,10 +1,10 @@
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::entities::prelude::*;
 use crate::entities::bookmarks;
 use crate::error::AppError;
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -21,16 +21,6 @@ pub struct BookmarkItem {
     pub updated_at: i64,
 }
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
 
 // ---------------------------------------------------------------------------
 // CRUD operations

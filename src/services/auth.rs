@@ -8,11 +8,11 @@ use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serde::Serialize;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::entities::prelude::*;
 use crate::entities::{sessions, users};
 use crate::error::AppError;
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -27,17 +27,6 @@ pub struct SessionInfo {
     pub device_info: Option<String>,
 }
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/// 13-digit Unix millisecond timestamp.
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
 
 // ---------------------------------------------------------------------------
 // Token / session helpers

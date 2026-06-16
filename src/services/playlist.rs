@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use sea_orm::{
     ActiveModelTrait, ActiveValue::*, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
@@ -10,17 +9,7 @@ use serde::Serialize;
 use crate::entities::prelude::*;
 use crate::entities::{playlist_songs, playlists, songs, artists, albums, stars, users};
 use crate::error::AppError;
-
-// ---------------------------------------------------------------------------
-// Timestamp helper
-// ---------------------------------------------------------------------------
-
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Response types

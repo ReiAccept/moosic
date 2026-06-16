@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use sea_orm::{
     ActiveModelTrait, ActiveValue::*, ColumnTrait, DatabaseConnection, EntityTrait,
     IntoActiveModel, PaginatorTrait, QueryFilter,
@@ -8,18 +6,7 @@ use serde::Serialize;
 
 use crate::entities::{albums, artists, libraries, songs, user_libraries};
 use crate::error::AppError;
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/// 13-digit Unix millisecond timestamp.
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Public types

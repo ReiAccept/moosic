@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use axum::{extract::State, http::HeaderMap, Json};
 use rand::RngExt as _;
 use sea_orm::{
@@ -13,13 +11,7 @@ use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::services::{auth, user};
 use crate::state::AppState;
-
-fn now_ms() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
+use crate::utils::now_ms;
 
 fn extract_bearer_token(headers: &HeaderMap) -> Result<&str, AppError> {
     let auth_header = headers
