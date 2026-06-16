@@ -17,7 +17,7 @@ migration = { path = "migration" }
 notify = { version = "8.2.0", features = ["serde"] }
 rand = "0.10"
 rand_core = { version = "0.6", features = ["getrandom"] }
-redis = { version = "0.31", features = ["tokio-comp"] }
+redis = { version = "1.2.3", features = ["tokio-comp"] }
 sea-orm = { version = "2.0.0-rc.40", features = ["sqlx-sqlite", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
