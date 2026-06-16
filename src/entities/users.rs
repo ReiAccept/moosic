@@ -8,7 +8,8 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(unique)]
     pub username: String,
-    pub created_at: DateTime,
+    /// 13-digit Unix millisecond timestamp.
+    pub created_at: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

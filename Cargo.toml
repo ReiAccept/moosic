@@ -12,6 +12,7 @@ axum = "0.8.9"
 dashmap = "6"
 memory-stats = "1.2.0"
 migration = { path = "migration" }
+notify = { version = "8.2.0", features = ["serde"] }
 redis = { version = "0.31", features = ["tokio-comp"] }
 sea-orm = { version = "2.0.0-rc.40", features = ["sqlx-sqlite", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0", features = ["derive"] }

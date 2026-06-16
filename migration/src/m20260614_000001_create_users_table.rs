@@ -13,10 +13,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(pk_auto(Users::Id))
                     .col(string(Users::Username).unique_key().not_null())
-                    .col(
-                        timestamp(Users::CreatedAt)
-                            .default(Expr::current_timestamp()),
-                    )
+                    .col(big_integer(Users::CreatedAt).not_null())
                     .to_owned(),
             )
             .await
