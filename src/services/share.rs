@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt as _;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -48,8 +48,9 @@ fn now_ms() -> i64 {
 
 /// Generate a random 32-character alphanumeric token.
 fn generate_share_token() -> String {
-    rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
+    let mut rng = rand::rng();
+    (&mut rng)
+        .sample_iter(&rand::distr::Alphanumeric)
         .take(32)
         .map(char::from)
         .collect()

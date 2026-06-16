@@ -1,6 +1,7 @@
-use argon2::password_hash::{rand_core::OsRng, PasswordHash, SaltString};
+use argon2::password_hash::{PasswordHash, SaltString};
 use argon2::{Argon2, PasswordHasher, PasswordVerifier};
-use rand::Rng;
+use rand::RngExt as _;
+use rand_core::OsRng;
 use sea_orm::ActiveValue;
 use sea_orm::ColumnTrait;
 use sea_orm::DatabaseConnection;
@@ -45,10 +46,10 @@ fn now_ms() -> i64 {
 /// Generate a random 32-character alphanumeric token.
 pub fn generate_token() -> String {
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..32)
         .map(|_| {
-            let idx = rng.gen_range(0..CHARSET.len());
+            let idx = rng.random_range(0..CHARSET.len());
             CHARSET[idx] as char
         })
         .collect()

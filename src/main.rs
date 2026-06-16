@@ -106,7 +106,8 @@ async fn main() {
 
 /// Create a default admin user (admin / 123456) if no users exist.
 async fn seed_admin_user(db: &sea_orm::DatabaseConnection) {
-    use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
+    use argon2::password_hash::{PasswordHasher, SaltString};
+    use rand_core::OsRng;
     use argon2::Argon2;
     use sea_orm::{ActiveModelTrait, ActiveValue::*, EntityTrait};
 

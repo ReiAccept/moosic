@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::UNIX_EPOCH;
 
-use rand::Rng;
+use rand::RngExt as _;
 use sea_orm::{ActiveModelTrait, ActiveValue::*, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use tokio::sync::RwLock;
 
@@ -18,8 +18,9 @@ use crate::state::{ScanProgress, ScanState, ScanStatus};
 
 /// Generate a unique scan identifier.
 pub fn generate_scan_id() -> String {
-    let token: String = rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
+    let mut rng = rand::rng();
+    let token: String = (&mut rng)
+        .sample_iter(&rand::distr::Alphanumeric)
         .take(16)
         .map(char::from)
         .collect();

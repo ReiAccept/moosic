@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::{extract::State, http::HeaderMap, Json};
-use rand::Rng;
+use rand::RngExt as _;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::*, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter,
 };
@@ -254,7 +254,7 @@ pub async fn password_reset_request(
     let user = user::find_by_email(&state.db, &payload.email).await?;
 
     if user.is_some() {
-        let code = format!("{:06}", rand::thread_rng().gen_range(0..1_000_000));
+        let code = format!("{:06}", rand::rng().random_range(0..1_000_000));
 
         PasswordResetActiveModel {
             email: Set(payload.email),
