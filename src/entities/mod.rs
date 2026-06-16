@@ -1,3 +1,20 @@
 pub mod prelude;
 
+pub mod albums;
+pub mod artists;
+pub mod bookmarks;
+pub mod cover_art;
+pub mod libraries;
+pub mod lyrics;
+pub mod password_resets;
+pub mod playlist_songs;
+pub mod playlists;
+pub mod ratings;
+pub mod scan_tasks;
+pub mod scrobbles;
+pub mod sessions;
+pub mod shares;
+pub mod songs;
+pub mod stars;
+pub mod user_libraries;
 pub mod users;

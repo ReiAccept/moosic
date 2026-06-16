@@ -8,16 +8,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+argon2 = "0.5"
 axum = "0.8.9"
 dashmap = "6"
 lofty = { version = "0.24.0", features = ["serde"] }
 memory-stats = "1.2.0"
 migration = { path = "migration" }
 notify = { version = "8.2.0", features = ["serde"] }
+rand = "0.8"
 redis = { version = "0.31", features = ["tokio-comp"] }
 sea-orm = { version = "2.0.0-rc.40", features = ["sqlx-sqlite", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.52.3", features = ["full"] }
+tower-http = { version = "0.6", features = ["fs"] }
 tracing = "0.1"
 tracing-subscriber = "0.3.23"

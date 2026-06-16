@@ -1,0 +1,13 @@
+pub mod annotation;
+pub mod auth;
+pub mod playlist;
+pub mod search;
+pub mod bookmark;
+pub mod cover;
+pub mod library;
+pub mod media;
+pub mod metadata;
+pub mod scanner;
+pub mod share;
+pub mod user;
+pub mod watcher;
