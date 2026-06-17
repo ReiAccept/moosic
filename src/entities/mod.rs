@@ -6,7 +6,6 @@ pub mod bookmarks;
 pub mod cover_art;
 pub mod libraries;
 pub mod lyrics;
-pub mod password_resets;
 pub mod playlist_songs;
 pub mod playlists;
 pub mod ratings;

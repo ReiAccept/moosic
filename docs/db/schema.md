@@ -44,7 +44,6 @@ erDiagram
     playlists ||--o{ playlist_songs : contains
     playlists ||--o{ shares : "shared as"
 
-    users ||--o{ password_resets : "requests"
 ```
 
 ---
@@ -310,23 +309,7 @@ erDiagram
 
 ---
 
-### 15. `password_resets` — 密码重置
-
-| 列 | 类型 | 约束 | 说明 |
-|---|------|------|------|
-| `id` | INTEGER | PK, AUTOINCREMENT | 记录 ID |
-| `email` | TEXT | NOT NULL | 邮箱地址 |
-| `code` | TEXT | NOT NULL | 验证码 |
-| `expires_at` | INTEGER | NOT NULL | 过期时间 |
-| `used` | INTEGER | NOT NULL, DEFAULT 0 | 是否已使用 |
-| `created_at` | INTEGER | NOT NULL | 创建时间 |
-
-**索引**:
-- `idx_password_resets_email` on `email`
-
----
-
-### 16. `scan_tasks` — 扫描任务
+### 15. `scan_tasks` — 扫描任务
 
 | 列 | 类型 | 约束 | 说明 |
 |---|------|------|------|
@@ -342,7 +325,7 @@ erDiagram
 
 ---
 
-### 17. `lyrics` — 歌词
+### 16. `lyrics` — 歌词
 
 | 列 | 类型 | 约束 | 说明 |
 |---|------|------|------|
@@ -352,7 +335,7 @@ erDiagram
 
 ---
 
-### 18. `cover_art` — 封面缓存
+### 17. `cover_art` — 封面缓存
 
 | 列 | 类型 | 约束 | 说明 |
 |---|------|------|------|

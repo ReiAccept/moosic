@@ -124,7 +124,6 @@ moosic/
 │   │   ├── bookmarks.rs
 │   │   ├── shares.rs
 │   │   ├── sessions.rs
-│   │   ├── password_resets.rs
 │   │   ├── scan_tasks.rs
 │   │   ├── lyrics.rs
 │   │   └── cover_art.rs
@@ -366,7 +365,6 @@ sequenceDiagram
 graph LR
     CLEANUP["Cleanup Task<br/>(tokio::time::interval)"] --> A["DELETE expired sessions"]
     CLEANUP --> B["DELETE expired shares"]
-    CLEANUP --> C["DELETE expired password_resets"]
     CLEANUP --> D["清理转码缓存文件"]
     CLEANUP --> E["清理过期封面缓存"]
 ```

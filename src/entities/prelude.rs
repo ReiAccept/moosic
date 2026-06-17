@@ -4,7 +4,6 @@ pub use super::bookmarks::{ActiveModel as BookmarkActiveModel, Entity as Bookmar
 pub use super::cover_art::{ActiveModel as CoverArtActiveModel, Entity as CoverArtEntity};
 pub use super::libraries::{ActiveModel as LibraryActiveModel, Entity as LibraryEntity};
 pub use super::lyrics::{ActiveModel as LyricActiveModel, Entity as LyricEntity};
-pub use super::password_resets::{ActiveModel as PasswordResetActiveModel, Entity as PasswordResetEntity};
 pub use super::playlist_songs::{ActiveModel as PlaylistSongActiveModel, Entity as PlaylistSongEntity};
 pub use super::playlists::{ActiveModel as PlaylistActiveModel, Entity as PlaylistEntity};
 pub use super::ratings::{ActiveModel as RatingActiveModel, Entity as RatingEntity};

@@ -72,7 +72,7 @@ async fn main() {
 
     let cache = init_cache(&config.cache).await;
 
-    // Spawn periodic cleanup task for expired sessions / shares / password resets
+    // Spawn periodic cleanup task for expired sessions / shares
     let cleanup_db = db.clone();
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(3600));
@@ -83,7 +83,7 @@ async fn main() {
                 .map(|d| d.as_millis() as i64)
                 .unwrap_or(0);
             use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
-            use crate::entities::{sessions, shares, password_resets};
+            use crate::entities::{sessions, shares};
             let _ = sessions::Entity::delete_many()
                 .filter(sessions::Column::ExpiresAt.lt(now))
                 .exec(&cleanup_db)
@@ -91,10 +91,6 @@ async fn main() {
             let _ = shares::Entity::delete_many()
                 .filter(shares::Column::ExpiresAt.lt(now))
                 .filter(shares::Column::ExpiresAt.is_not_null())
-                .exec(&cleanup_db)
-                .await;
-            let _ = password_resets::Entity::delete_many()
-                .filter(password_resets::Column::ExpiresAt.lt(now))
                 .exec(&cleanup_db)
                 .await;
             tracing::debug!("Cleanup task ran");
