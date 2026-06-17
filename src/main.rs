@@ -10,7 +10,7 @@ mod services;
 mod state;
 mod utils;
 
-use cache::{CacheBackend, MemoryCache, RedisCache};
+use cache::{CacheBackend, DashMapCache, MokaCache, RedisCache};
 use config::Config;
 use state::AppState;
 use std::sync::Arc;
@@ -31,13 +31,20 @@ async fn main() {
     seed_admin_user(&db).await;
 
     // select cache backend based on configuration
-    let cache = if config.redis.enabled {
-        let redis_cache = RedisCache::connect(&config.redis).await;
-        tracing::info!("Redis connected (cache): url={}", config.redis.url);
-        CacheBackend::Redis(redis_cache)
-    } else {
-        tracing::info!("Using in-memory cache (DashMap)");
-        CacheBackend::Memory(MemoryCache::new())
+    let cache = match &config.cache {
+        config::Cache::DashMap => {
+            tracing::info!("Using in-memory cache (DashMap)");
+            CacheBackend::DashMap(DashMapCache::new())
+        }
+        config::Cache::Moka => {
+            tracing::info!("Using Moka cache");
+            CacheBackend::Moka(MokaCache::new())
+        }
+        config::Cache::Redis { url } => {
+            let redis_cache = RedisCache::connect(url).await;
+            tracing::info!("Redis connected (cache): url={url}");
+            CacheBackend::Redis(redis_cache)
+        }
     };
 
     // determine database backend name for status reporting

@@ -2,23 +2,15 @@ use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
 use std::time::Duration;
 
-/// Redis-backed cache.
-///
-/// Wraps a [`MultiplexedConnection`] for async Redis operations.
-/// Cheap to clone — the connection is multiplexed.
 #[derive(Clone)]
 pub struct RedisCache {
     conn: MultiplexedConnection,
 }
 
 impl RedisCache {
-    /// Connect to Redis using the provided configuration and return a
-    /// new `RedisCache` wrapping the established connection.
-    ///
-    /// Panics if the URL is invalid or the connection cannot be established.
-    pub async fn connect(config: &crate::config::Redis) -> Self {
+    pub async fn connect(url: &str) -> Self {
         let client =
-            redis::Client::open(config.url.as_str()).expect("Failed to parse Redis URL");
+            redis::Client::open(url).expect("Failed to parse Redis URL");
         let conn = client
             .get_multiplexed_async_connection()
             .await
@@ -26,7 +18,6 @@ impl RedisCache {
         Self { conn }
     }
 
-    /// Look up a key. Returns `Some(value)` on hit, `None` on miss.
     pub async fn get(&self, key: &str) -> Option<String> {
         let mut conn = self.conn.clone();
         let result: redis::RedisResult<String> = conn.get(key).await;
@@ -39,13 +30,12 @@ impl RedisCache {
         }
     }
 
-    /// Store a value under a key, with an optional time-to-live.
+
     pub async fn set(&self, key: &str, value: &str, ttl: Option<Duration>) {
         let mut conn = self.conn.clone();
         let result: redis::RedisResult<()> = match ttl {
             Some(t) => {
                 let seconds = t.as_secs();
-                // SETEX: set with expiration in seconds
                 conn.set_ex(key, value, seconds).await
             }
             None => {
@@ -57,7 +47,6 @@ impl RedisCache {
         }
     }
 
-    /// Delete a key. No-op if the key does not exist.
     pub async fn del(&self, key: &str) {
         let mut conn = self.conn.clone();
         let result: redis::RedisResult<()> = conn.del(key).await;
@@ -66,7 +55,6 @@ impl RedisCache {
         }
     }
 
-    /// Check whether a key exists.
     pub async fn exists(&self, key: &str) -> bool {
         let mut conn = self.conn.clone();
         let result: redis::RedisResult<bool> = conn.exists(key).await;

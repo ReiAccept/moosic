@@ -3,9 +3,8 @@
         "type": "sqlite",
         "url": "sqlite://moosic.db?mode=rwc"
     },
-    "redis": {
-        "enabled": false,
-        "url": "redis://127.0.0.1:6379"
+    "cache": {
+        "type": "moka"
     },
     "server": {
         "host": "0.0.0.0",
