@@ -18,14 +18,11 @@ use crate::error::AppError;
 use crate::state::AppState;
 use crate::utils::now_ms;
 
-/// Authenticated user information extracted from a valid session token.
 #[derive(Clone, Debug)]
 pub struct AuthUser {
     pub id: i32,
     pub username: String,
     pub privs: serde_json::Value,
-    pub scrobbling_enabled: bool,
-    pub max_bit_rate: i32,
 }
 
 /// Extractor that pulls an `AuthUser` from request extensions.
@@ -130,8 +127,6 @@ pub async fn auth_middleware(
         id: user.id,
         username: user.username,
         privs: serde_json::from_str(&user.privs).unwrap_or(serde_json::Value::Null),
-        scrobbling_enabled: user.scrobbling_enabled != 0,
-        max_bit_rate: user.max_bit_rate,
     };
 
     req.extensions_mut().insert(auth_user);
