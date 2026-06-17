@@ -10,7 +10,7 @@ mod services;
 mod state;
 mod utils;
 
-use cache::{CacheBackend, DashMapCache, MokaCache, RedisCache};
+use cache::init as init_cache;
 use config::Config;
 use state::AppState;
 use std::sync::Arc;
@@ -18,36 +18,16 @@ use tokio::sync::RwLock;
 
 #[tokio::main]
 async fn main() {
-    // initialize tracing
     tracing_subscriber::fmt::init();
 
-    // load configuration from JSON file
     let config = Config::load();
 
-    // connect to database and run pending migrations
     let db = db::connect(&config.database).await;
 
-    // Seed default admin user if none exists
     seed_admin_user(&db).await;
 
-    // select cache backend based on configuration
-    let cache = match &config.cache {
-        config::Cache::DashMap => {
-            tracing::info!("Using in-memory cache (DashMap)");
-            CacheBackend::DashMap(DashMapCache::new())
-        }
-        config::Cache::Moka => {
-            tracing::info!("Using Moka cache");
-            CacheBackend::Moka(MokaCache::new())
-        }
-        config::Cache::Redis { url } => {
-            let redis_cache = RedisCache::connect(url).await;
-            tracing::info!("Redis connected (cache): url={url}");
-            CacheBackend::Redis(redis_cache)
-        }
-    };
+    let cache = init_cache(&config.cache).await;
 
-    // determine database backend name for status reporting
     let db_backend = match &config.database {
         config::Database::Sqlite { .. } => "sqlite",
     };

@@ -6,13 +6,32 @@ pub use moka::MokaCache;
 pub use dashmap::DashMapCache;
 pub use redis::RedisCache;
 
+use crate::config;
 use std::time::Duration;
 
 #[derive(Clone)]
 pub enum CacheBackend {
-    DashMap(DashMapCache),
     Moka(MokaCache),
+    DashMap(DashMapCache),
     Redis(RedisCache),
+}
+
+pub async fn init(cache: &config::Cache) -> CacheBackend {
+    match cache {
+        config::Cache::Moka => {
+            tracing::info!("Using Moka cache");
+            CacheBackend::Moka(MokaCache::new())
+        }
+        config::Cache::DashMap => {
+            tracing::info!("Using DashMap cache");
+            CacheBackend::DashMap(DashMapCache::new())
+        }
+        config::Cache::Redis { url } => {
+            let redis_cache = RedisCache::connect(url).await;
+            tracing::info!("Using Redis cache");
+            CacheBackend::Redis(redis_cache)
+        }
+    }
 }
 
 impl CacheBackend {

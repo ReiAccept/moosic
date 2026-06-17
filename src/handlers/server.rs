@@ -31,7 +31,6 @@ pub async fn server_status(
 
     let cache_backend = state.cache.kind().to_owned();
 
-    // Lightweight connectivity check
     let db_connected = state
         .db
         .execute_raw(Statement::from_string(
