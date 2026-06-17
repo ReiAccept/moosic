@@ -7,6 +7,8 @@ pub struct Config {
     #[serde(default)]
     pub cache: Cache,
     pub server: Server,
+    #[serde(default)]
+    pub frontend: Frontend,
 }
 
 #[derive(Debug, Deserialize)]
@@ -20,6 +22,25 @@ pub enum Database {
 pub struct Server {
     pub host: String,
     pub port: u16,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Frontend {
+    /// Path to the built frontend directory containing static files and index.html.
+    #[serde(default = "default_frontend_path")]
+    pub path: String,
+}
+
+impl Default for Frontend {
+    fn default() -> Self {
+        Self {
+            path: default_frontend_path(),
+        }
+    }
+}
+
+fn default_frontend_path() -> String {
+    "web/dist".to_owned()
 }
 
 #[derive(Debug, Deserialize)]

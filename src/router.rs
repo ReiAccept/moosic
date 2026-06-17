@@ -1,14 +1,13 @@
-use axum::{http::StatusCode, middleware, response::Html, routing::{get, post}, Router};
+use axum::{middleware, routing::{get, post}, Router};
 use tower_http::services::{ServeDir, ServeFile};
 
 use crate::handlers;
 use crate::middleware::auth::auth_middleware;
 use crate::state::AppState;
 
-/// Path to the built frontend directory.
-const FRONTEND_DIR: &str = "web/dist";
-
 pub fn create_router(state: AppState) -> Router {
+    let frontend_dir = state.frontend_path.clone();
+
     // Public API routes — no authentication required
     let public = Router::new()
         .route("/api/health", get(handlers::health))
@@ -117,8 +116,8 @@ pub fn create_router(state: AppState) -> Router {
         .merge(public)
         .merge(protected)
         .fallback_service(
-            ServeDir::new(FRONTEND_DIR)
-                .fallback(ServeFile::new(format!("{FRONTEND_DIR}/index.html")))
+            ServeDir::new(&frontend_dir)
+                .fallback(ServeFile::new(format!("{frontend_dir}/index.html")))
         )
         .with_state(state)
 }

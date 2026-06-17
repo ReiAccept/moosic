@@ -63,6 +63,7 @@ async fn main() {
         cache,
         server_host: config.server.host.clone(),
         server_port: config.server.port,
+        frontend_path: config.frontend.path.clone(),
         start_time: std::time::Instant::now(),
         scan_state: Arc::new(RwLock::new(state::ScanState::default())),
     };
