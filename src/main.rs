@@ -57,7 +57,6 @@ async fn main() {
         }
     });
 
-    // build our application with shared state
     let state = AppState {
         db,
         cache,
@@ -66,7 +65,6 @@ async fn main() {
     };
     let app = router::create_router(state);
 
-    // bind to the configured address and port
     let addr = format!("{}:{}", config.server.host, config.server.port);
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
@@ -74,7 +72,6 @@ async fn main() {
 
     tracing::info!("Listening on {addr}");
 
-    // Graceful shutdown on Ctrl+C
     let _ = axum::serve(listener, app)
         .with_graceful_shutdown(async {
             tokio::signal::ctrl_c()

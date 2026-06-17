@@ -1,13 +1,6 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde::Serialize;
 
-/// Unified error type for all API responses.
-///
-/// Produces JSON in the format:
-/// ```json
-/// {"error": {"code": "not_found", "message": "Human-readable description"}}
-/// ```
 #[derive(Debug)]
 pub struct AppError {
     pub status: StatusCode,
@@ -85,11 +78,6 @@ impl AppError {
             details: None,
         }
     }
-
-    pub fn with_details(mut self, details: serde_json::Value) -> Self {
-        self.details = Some(details);
-        self
-    }
 }
 
 impl IntoResponse for AppError {
@@ -112,12 +100,4 @@ impl From<sea_orm::DbErr> for AppError {
         tracing::error!("Database error: {e}");
         Self::internal(format!("Database error: {e}"))
     }
-}
-
-/// Helper for JSON serialization in error details
-#[derive(Serialize)]
-pub struct FieldError {
-    pub field: &'static str,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub value: Option<String>,
 }
