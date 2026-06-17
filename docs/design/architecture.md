@@ -445,7 +445,6 @@ classDiagram
     class AppState {
         +DatabaseConnection db
         +CacheBackend cache
-        +&'static str db_backend
         +String server_host
         +u16 server_port
         +Option~ScanHandle~ scanner

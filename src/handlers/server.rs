@@ -53,7 +53,7 @@ pub async fn server_status(
             memory_usage: usage.physical_mem as usize,
         },
         database: DatabaseStatus {
-            backend: state.db_backend.to_owned(),
+            backend: "sqlite".to_string(), // TODO: 等支持多种数据库后再说
             connected: db_connected,
         },
         cache: CacheStatus {

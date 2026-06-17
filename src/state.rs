@@ -12,8 +12,6 @@ use crate::cache::CacheBackend;
 pub struct AppState {
     pub db: DatabaseConnection,
     pub cache: CacheBackend,
-    /// Database backend identifier, e.g. `"sqlite"`.
-    pub db_backend: &'static str,
     /// Server listen address.
     pub server_host: String,
     /// Server listen port.

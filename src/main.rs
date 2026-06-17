@@ -28,10 +28,6 @@ async fn main() {
 
     let cache = init_cache(&config.cache).await;
 
-    let db_backend = match &config.database {
-        config::Database::Sqlite { .. } => "sqlite",
-    };
-
     // Spawn periodic cleanup task for expired sessions / shares / password resets
     let cleanup_db = db.clone();
     tokio::spawn(async move {
@@ -65,7 +61,6 @@ async fn main() {
     let state = AppState {
         db,
         cache,
-        db_backend,
         server_host: config.server.host.clone(),
         server_port: config.server.port,
         start_time: std::time::Instant::now(),
