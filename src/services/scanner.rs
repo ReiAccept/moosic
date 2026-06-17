@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path};
 use std::sync::Arc;
 use std::time::UNIX_EPOCH;
-use crate::utils::now_ms;
 
 use rand::RngExt as _;
 use sea_orm::{ActiveModelTrait, ActiveValue::*, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
@@ -12,6 +11,7 @@ use crate::entities::{albums, artists, cover_art, libraries, songs};
 use crate::error::AppError;
 use crate::services::metadata;
 use crate::state::{ScanProgress, ScanState, ScanStatus};
+use crate::utils::now_ms;
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -112,10 +112,10 @@ fn is_cancelled(state: &Arc<RwLock<ScanState>>, scan_id: &str) -> bool {
 
 /// Walk entry collected from the filesystem.
 #[derive(Clone, Debug)]
-struct WalkEntry {
-    file_path: String,
-    mtime_ms: i64,
-    size_bytes: i64,
+pub(crate) struct WalkEntry {
+    pub(crate) file_path: String,
+    pub(crate) mtime_ms: i64,
+    pub(crate) size_bytes: i64,
 }
 
 /// Main scan routine.
@@ -346,7 +346,7 @@ async fn process_library(
 }
 
 /// Process a single audio file: read metadata and upsert into DB.
-async fn scan_single_file(
+pub(crate) async fn scan_single_file(
     db: &DatabaseConnection,
     library_id: i32,
     entry: &WalkEntry,

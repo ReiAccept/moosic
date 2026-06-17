@@ -57,11 +57,16 @@ async fn main() {
         }
     });
 
+    let scan_state = Arc::new(RwLock::new(state::ScanState::default()));
+
+    // Start the filesystem watcher for libraries with watch_enabled
+    let watcher_handle = services::watcher::start_watching(db.clone(), scan_state.clone()).await;
+
     let state = AppState {
         db,
         cache,
         config: config.clone(),
-        scan_state: Arc::new(RwLock::new(state::ScanState::default())),
+        scan_state,
     };
     let app = router::create_router(state);
 
@@ -78,6 +83,7 @@ async fn main() {
                 .await
                 .expect("Failed to install Ctrl+C handler");
             tracing::info!("Shutting down...");
+            watcher_handle.shutdown();
         })
         .await;
 }

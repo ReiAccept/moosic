@@ -1,4 +1,4 @@
-# 软件架构设计
+# 概览
 
 ## 概述
 
@@ -155,7 +155,7 @@ moosic/
 │   │   ├── user.rs                # 用户 CRUD + 自服务
 │   │   ├── library.rs             # 音乐库 CRUD + 配置
 │   │   ├── scanner.rs             # 文件系统扫描 + 变更检测
-│   │   ├── watcher.rs             # notify 文件监听服务
+│   │   ├── watcher.rs             # notify 文件监听服务, 用于监听所有音乐库目录下的文件变更, 若有音乐文件发生变更则进行更新
 │   │   ├── media.rs               # 流媒体传输 + Range 支持
 │   │   ├── transcoding.rs         # ffmpeg 转码子进程管理
 │   │   ├── metadata.rs            # 音频元数据读取（ID3/Vorbis/FLAC）
