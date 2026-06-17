@@ -1,26 +1,16 @@
 use std::sync::Arc;
-use std::time::Instant;
 
 use sea_orm::DatabaseConnection;
 use tokio::sync::RwLock;
 
 use crate::cache::CacheBackend;
+use crate::config::Config;
 
-/// Shared application state, accessible from handlers via
-/// `axum::extract::State<AppState>`.
 #[derive(Clone)]
 pub struct AppState {
     pub db: DatabaseConnection,
     pub cache: CacheBackend,
-    /// Server listen address.
-    pub server_host: String,
-    /// Server listen port.
-    pub server_port: u16,
-    /// Path to the built frontend directory.
-    pub frontend_path: String,
-    /// Server start time, used for uptime calculation.
-    pub start_time: Instant,
-    /// Current scan task state, shared between API and background task.
+    pub config: Config,
     pub scan_state: Arc<RwLock<ScanState>>,
 }
 

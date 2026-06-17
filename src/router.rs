@@ -6,7 +6,7 @@ use crate::middleware::auth::auth_middleware;
 use crate::state::AppState;
 
 pub fn create_router(state: AppState) -> Router {
-    let frontend_dir = state.frontend_path.clone();
+    let frontend_dir = state.config.frontend.path.clone();
 
     // Public API routes — no authentication required
     let public = Router::new()

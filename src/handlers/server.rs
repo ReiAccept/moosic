@@ -60,8 +60,8 @@ pub async fn server_status(
             backend: cache_backend,
         },
         server: ServerInfo {
-            host: state.server_host.clone(),
-            port: state.server_port,
+            host: state.config.server.host.clone(),
+            port: state.config.server.port,
         },
     };
 
