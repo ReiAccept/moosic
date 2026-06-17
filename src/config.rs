@@ -9,6 +9,8 @@ pub struct Config {
     pub server: Server,
     #[serde(default)]
     pub frontend: Frontend,
+    #[serde(default)]
+    pub log: Log,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -60,6 +62,31 @@ impl Default for Cache {
     fn default() -> Self {
         Self::Moka
     }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Log {
+    #[serde(default = "default_log_level")]
+    pub level: String,
+    #[serde(default = "default_log_path")]
+    pub path: String,
+}
+
+impl Default for Log {
+    fn default() -> Self {
+        Self {
+            level: default_log_level(),
+            path: default_log_path(),
+        }
+    }
+}
+
+fn default_log_level() -> String {
+    "info".to_owned()
+}
+
+fn default_log_path() -> String {
+    "logs/moosic.log".to_owned()
 }
 
 impl Config {

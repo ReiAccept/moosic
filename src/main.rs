@@ -18,9 +18,53 @@ use tokio::sync::RwLock;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
-
     let config = Config::load();
+
+    // Parse log level from config
+    let level: tracing::Level = config.log.level.parse().unwrap_or_else(|_| {
+        eprintln!(
+            "Invalid log level '{}', falling back to INFO",
+            config.log.level
+        );
+        tracing::Level::INFO
+    });
+
+    // Ensure log directory exists
+    let log_path = std::path::Path::new(&config.log.path);
+    if let Some(parent) = log_path.parent() {
+        std::fs::create_dir_all(parent)
+            .unwrap_or_else(|e| panic!("Failed to create log directory {:?}: {e}", parent));
+    }
+
+    // File appender (no rotation, writes to the configured path)
+    let file_appender = tracing_appender::rolling::never(
+        log_path.parent().unwrap_or(std::path::Path::new(".")),
+        log_path
+            .file_name()
+            .unwrap_or(std::ffi::OsStr::new("moosic.log")),
+    );
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
+    // Build subscriber: stdout layer + file layer, both at the configured level
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::util::SubscriberInitExt;
+    use tracing_subscriber::Layer;
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(std::io::stdout)
+                .with_filter(tracing_subscriber::filter::LevelFilter::from_level(
+                    level,
+                )),
+        )
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(non_blocking)
+                .with_filter(tracing_subscriber::filter::LevelFilter::from_level(
+                    level,
+                )),
+        )
+        .init();
 
     let db = db::connect(&config.database).await;
 

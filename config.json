@@ -12,5 +12,9 @@
     },
     "frontend": {
         "path": "web/dist"
+    },
+    "log": {
+        "level": "debug",
+        "path": "logs/moosic.log"
     }
 }
