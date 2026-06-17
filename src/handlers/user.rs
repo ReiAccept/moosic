@@ -1,17 +1,14 @@
 use axum::{extract::State, http::HeaderMap, Json};
-use rand::RngExt as _;
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::*, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter,
-};
+use sea_orm::{EntityTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::entities::{password_resets, users};
+use crate::entities::{users};
 use crate::entities::prelude::*;
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::services::{auth, user};
 use crate::state::AppState;
-use crate::utils::now_ms;
+
 
 fn extract_bearer_token(headers: &HeaderMap) -> Result<&str, AppError> {
     let auth_header = headers
@@ -75,17 +72,6 @@ pub struct RevokeRequest {
 #[derive(Deserialize)]
 pub struct DeleteAccountRequest {
     pub password: String,
-}
-
-#[derive(Deserialize)]
-pub struct ResetRequest {
-    pub email: String,
-}
-
-#[derive(Deserialize)]
-pub struct ResetConfirmRequest {
-    pub code: String,
-    pub new_password: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -235,62 +221,4 @@ pub async fn delete_account(
     user::delete(&state.db, user.id).await?;
 
     Ok(Json(serde_json::json!({"message": "Account deleted"})))
-}
-
-/// POST /api/auth/password-reset/request
-/// No auth required. Always returns success to prevent email enumeration.
-pub async fn password_reset_request(
-    State(state): State<AppState>,
-    Json(payload): Json<ResetRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    let user = user::find_by_email(&state.db, &payload.email).await?;
-
-    if user.is_some() {
-        let code = format!("{:06}", rand::rng().random_range(0..1_000_000));
-
-        PasswordResetActiveModel {
-            email: Set(payload.email),
-            code: Set(code),
-            expires_at: Set(now_ms() + 600_000), // 10 minutes
-            created_at: Set(now_ms()),
-            used: Set(0),
-            ..Default::default()
-        }
-        .insert(&state.db)
-        .await?;
-    }
-
-    Ok(Json(serde_json::json!({"message": "If the email exists, a reset code has been sent"})))
-}
-
-/// POST /api/auth/password-reset/confirm
-/// No auth required.
-pub async fn password_reset_confirm(
-    State(state): State<AppState>,
-    Json(payload): Json<ResetConfirmRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    // Find unused, unexpired code
-    let reset = PasswordResetEntity::find()
-        .filter(password_resets::Column::Code.eq(&payload.code))
-        .filter(password_resets::Column::Used.eq(0))
-        .filter(password_resets::Column::ExpiresAt.gt(now_ms()))
-        .one(&state.db)
-        .await?
-        .ok_or_else(|| AppError::validation_error("Invalid or expired reset code"))?;
-
-    // Find user by the email stored in the reset record
-    let user = user::find_by_email(&state.db, &reset.email)
-        .await?
-        .ok_or_else(|| AppError::validation_error("User not found"))?;
-
-    // Hash new password and update user
-    let password_hash = auth::hash_password(&payload.new_password)?;
-    user::set_password(&state.db, user.id, &password_hash).await?;
-
-    // Mark code as used
-    let mut reset_active: password_resets::ActiveModel = reset.into_active_model();
-    reset_active.used = Set(1);
-    reset_active.update(&state.db).await?;
-
-    Ok(Json(serde_json::json!({"message": "Password reset successfully"})))
 }

@@ -12,8 +12,6 @@ pub fn create_router(state: AppState) -> Router {
     let public = Router::new()
         .route("/api/health", get(handlers::health))
         .route("/api/user/login", post(handlers::login))
-        .route("/api/user/password/reset/request", post(handlers::password_reset_request))
-        .route("/api/user/password/reset/confirm", post(handlers::password_reset_confirm))
         .route("/api/share/{token}", get(handlers::get_share));
 
     // Protected API routes — require valid Bearer token

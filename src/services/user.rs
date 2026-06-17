@@ -22,30 +22,6 @@ pub async fn find_by_id(
         .ok_or_else(|| AppError::not_found("User not found"))
 }
 
-/// Find a user by username. Returns `None` if no match.
-pub async fn find_by_username(
-    db: &DatabaseConnection,
-    username: &str,
-) -> Result<Option<users::Model>, AppError> {
-    let user = users::Entity::find()
-        .filter(users::Column::Username.eq(username))
-        .one(db)
-        .await?;
-    Ok(user)
-}
-
-/// Find a user by email. Returns `None` if no match.
-pub async fn find_by_email(
-    db: &DatabaseConnection,
-    email: &str,
-) -> Result<Option<users::Model>, AppError> {
-    let user = users::Entity::find()
-        .filter(users::Column::Email.eq(email))
-        .one(db)
-        .await?;
-    Ok(user)
-}
-
 /// List all users.
 pub async fn list_all(
     db: &DatabaseConnection,
